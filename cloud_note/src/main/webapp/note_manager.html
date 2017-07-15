@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>笔记管理</title>
+<script type="text/javascript" src="scripts/jquery.min.js">
+</script>
+<script type="text/javascript" src="scripts/basevalue.js">
+</script>
+<script type="text/javascript" src="scripts/cookie_util.js">
+</script>
+<script type="text/javascript">
+$(function(){
+	//单击搜索按钮执行搜索处理
+	$("#search_btn").click(function(){
+		//获取请求参数
+		var userId = getCookie("userId");
+		if(userId==null){
+			window.location.href="log_in.html";
+		}else{//获取标题,状态,日期
+			var title = $("#title").val().trim();
+		   var begin = $("#begin").val().trim();
+		   var end = $("#end").val().trim();
+		   var status = $("#status").val();
+		   //发送Ajax请求
+		   $.ajax({
+			   url:path+"/note/manager.do",
+			   type:"post",
+			   data:{"title":title,"status":status,
+				   	"begin":begin,"end":end,
+				   	"userId":userId},
+			   dataType:"json",
+			   success:function(result){
+				   if(result.status==0){
+					   var notes = result.data;
+					   //清除原有列表信息(从第二个tr删除)
+					   $("table tr:gt(0)").remove();
+					   //循环生成tr元素
+					   for(var i=0;i<notes.length;i++){
+						   var noteTitle = 
+							   notes[i].cn_note_title;
+						   var noteStatus = 
+							   notes[i].cn_note_status_id;
+						   var noteTime = 
+							   notes[i].cn_note_create_time;
+						   var noteId = notes[i].cn_note_id;
+						   //拼一个tr
+						   var str = "";
+						   str+="<tr>";
+						   str+="	<td><input type='checkbox'>"+noteTitle+"</td>";
+						   str+="	<td>"+noteStatus+"</td>";
+						   str+="	<td>"+noteTime+"</td>";
+						   str+="</tr>";
+						   var $tr = $(str);
+						   $tr.data("noteId",noteId);
+						   //添加到table中
+						   $("table").append($tr);
+					   }
+				   }
+			   },
+			   error:function(){
+				   alert("搜索失败");
+			   }
+		   });
+		}
+		
+	});
+});
+</script>
+</head>
+<body>
+标题：<input type="text" id="title">
+状态：<select id="status">
+		<option value="0">全部</option>
+		<option value="1">正常</option>
+		<option value="2">删除</option>
+	  </select><br/>
+开始日期：<input type="text" id="begin">
+结束日期：<input type="text" id="end">
+<input type="button" id="search_btn" 
+	value="搜索笔记">
+<hr/>
+<table>
+<tr><th>标题</th><th>状态</th><th>创建时间</th></tr>
+</table>
+</body>
+</html>
